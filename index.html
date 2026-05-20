@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Attendance PRO + SMS</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: linear-gradient(135deg, #0f172a, #1e1b4b, #312e81); color: white; min-height: 100vh; }
+   .header { background: rgba(99,102,241,0.2); backdrop-filter: blur(20px); padding: 20px 5%; text-align: center; border-bottom: 2px solid rgba(99,102,241,0.5); box-shadow: 0 0 40px rgba(99,102,241,0.3); }
+   .header h1 { font-family: 'Orbitron', sans-serif; font-size: 32px; font-weight: 900; text-shadow: 0 0 20px rgba(99,102,241,0.8); }
+  .container { max-width: 1400px; margin: 25px auto; padding: 0 20px; }
+  .tabs { display: flex; gap: 12px; margin-bottom: 25px; flex-wrap: wrap; }
+  .tab { flex: 1; min-width: 150px; padding: 16px; background: rgba(30,27,75,0.6); backdrop-filter: blur(20px); border: 2px solid rgba(99,102,241,0.3); border-radius: 14px; font-weight: 700; cursor: pointer; text-align: center; transition: 0.3s; }
+  .tab.active { background: linear-gradient(135deg, #6366f1, #4f46e5); border-color: #818cf8; box-shadow: 0 0 30px rgba(99,102,241,0.6); }
+  .section { display: none; }
+  .section.active { display: block; }
+  .glass-box { background: rgba(30,27,75,0.7); backdrop-filter: blur(20px); padding: 25px; border-radius: 20px; border: 2px solid rgba(99,102,241,0.3); margin-bottom: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+  .section-title { font-family: 'Orbitron', sans-serif; font-size: 22px; font-weight: 900; margin-bottom: 20px; text-align: center; color: #a5b4fc; text-shadow: 0 0 15px rgba(99,102,241,0.5); }
+  .form-group { margin-bottom: 18px; }
+  .form-group label { display: block; font-weight: 700; margin-bottom: 8px; color: #c7d2fe; font-size: 13px; text-transform: uppercase; }
+  .form-group input,.form-group select { width: 100%; padding: 14px; border: 2px solid rgba(99,102,241,0.4); border-radius: 12px; font-size: 15px; background: rgba(15,23,42,0.8); color: white; font-weight: 600; }
+  .form-group input:focus { outline: none; border-color: #818cf8; box-shadow: 0 0 20px rgba(129,140,248,0.4); }
+  .btn { background: linear-gradient(135deg, #6366f1, #4f46e5); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: 800; cursor: pointer; width: 100%; font-size: 16px; box-shadow: 0 0 25px rgba(99,102,241,0.5); transition: 0.3s; font-family: 'Orbitron', sans-serif; margin-top: 10px; }
+  .btn:hover { transform: translateY(-2px); box-shadow: 0 0 35px rgba(99,102,241,0.7); }
+  .btn-sms { background: linear-gradient(135deg, #f59e0b, #d97706); box-shadow: 0 0 25px rgba(245,158,11,0.5); }
+  .btn-wa { background: linear-gradient(135deg, #25d366, #128c7e); box-shadow: 0 0 25px rgba(37,211,102,0.5); }
+  .student-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; margin-top: 20px; }
+  .student-card { background: rgba(15,23,42,0.6); padding: 18px; border-radius: 16px; border: 2px solid rgba(99,102,241,0.3); transition: 0.3s; }
+  .student-card.absent-today { border-color: #ef4444; box-shadow: 0 0 20px rgba(239,68,68,0.3); }
+  .trade-img { width: 100%; height: 120px; object-fit: cover; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
+  .student-name { font-size: 18px; font-weight: 700; color: #e0e7ff; margin-bottom: 6px; }
+  .trade-name { font-size: 13px; color: #818cf8; font-weight: 700; margin-bottom: 10px; }
+  .student-stats { display: flex; gap: 10px; margin: 12px 0; }
+  .stat-badge { flex: 1; padding: 8px; border-radius: 10px; text-align: center; font-weight: 700; font-size: 13px; }
+  .present { background: rgba(34,197,94,0.2); color: #4ade80; border: 1px solid #22c55e; }
+  .absent { background: rgba(239,68,68,0.2); color: #f87171; border: 1px solid #ef4444; }
+  .attendance-btns { display: flex; gap: 8px; margin-top: 12px; }
+  .btn-small { flex: 1; padding: 10px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 13px; transition: 0.3s; }
+  .btn-p { background: #22c55e; color: white; }
+  .btn-a { background: #ef4444; color: white; }
+  .contact-btns { display: flex; gap: 8px; margin-top: 10px; }
+  .btn-call { flex: 1; background: linear-gradient(135deg, #0ea5e9, #0284c7); color: white; padding: 10px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 12px; text-decoration: none; text-align: center; }
+  .btn-whatsapp { flex: 1; background: linear-gradient(135deg, #25d366, #128c7e); color: white; padding: 10px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 12px; text-decoration: none; text-align: center; }
+  .chart-container { background: rgba(15,23,42,0.6); padding: 20px; border-radius: 16px; margin-top: 20px; height: 400px; }
+  .absent-list { background: rgba(239,68,68,0.1); border: 2px solid rgba(239,68,68,0.3); padding: 20px; border-radius: 16px; margin-top: 20px; }
+  .absent-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(15,23,42,0.6); border-radius: 10px; margin-bottom: 10px; }
+  .sms-btn-group { display: flex; gap: 8px; }
+  .btn-icon { padding: 8px 14px; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 12px; }
+  .alert-success { background: rgba(34,197,94,0.2); border: 2px solid #22c55e; padding: 15px; border-radius: 12px; margin-bottom: 15px; color: #4ade80; font-weight: 700; text-align: center; }
+  .record-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
+  .record-name { font-size: 24px; font-weight: 900; color: #e0e7ff; }
+  .year-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin: 20px 0; }
+  .year-stat { background: rgba(15,23,42,0.6); padding: 15px; border-radius: 12px; text-align: center; border: 2px solid rgba(99,102,241,0.3); }
+  .year-stat-num { font-size: 28px; font-weight: 900; font-family: 'Orbitron', sans-serif; }
+  .year-stat-label { color: #94a3b8; font-size: 12px; margin-top: 5px; }
+  .month-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 10px; margin-top: 15px; }
+  .month-box { background: rgba(15,23,42,0.6); padding: 12px; border-radius: 10px; text-align: center; border: 1px solid rgba(99,102,241,0.3); }
+  .month-name { color: #a5b4fc; font-weight: 700; font-size: 12px; margin-bottom: 8px; }
+  .month-data { font-size: 11px; color: #cbd5e1; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 SMART ATTENDANCE PRO + SMS</h1>
+        <p>⚡ 3D Charts + Monthly Data + Auto SMS Alerts ⚡</p>
+    </div>
+
+    <div class="container">
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('mark')">📝 Mark</div>
+            <div class="tab" onclick="switchTab('monthly')">📅 Monthly</div>
+            <div class="tab" onclick="switchTab('absent')">📱 SMS Alert</div>
+            <div class="tab" onclick="switchTab('search')">🔍 Search</div>
+            <div class="tab" onclick="switchTab('add')">➕ Add</div>
+        </div>
+
+        <!-- MARK ATTENDANCE -->
+        <div class="section active" id="mark">
+            <div class="glass-box">
+                <div class="section-title">📝 TODAY'S ATTENDANCE</div>
+                <div class="form-group">
+                    <label>Select Date</label>
+                    <input type="date" id="attDate">
+                </div>
+                <div class="student-grid" id="studentList"></div>
+            </div>
+        </div>
+
+        <!-- MONTHLY REPORT -->
+        <div class="section" id="monthly">
+            <div class="glass-box">
+                <div class="section-title">📊 MONTHLY 3D REPORT</div>
+                <div class="form-group">
+                    <label>Select Month</label>
+                    <input type="month" id="monthSelect">
+                </div>
+                <button class="btn" onclick="generateMonthly()">📈 Generate Report</button>
+                <div class="chart-container">
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- SMS ALERT FOR ABSENT -->
+        <div class="section" id="absent">
+            <div class="glass-box">
+                <div class="section-title">📱 ABSENT STUDENTS SMS ALERT</div>
+                <div class="form-group">
+                    <label>Select Date</label>
+                    <input type="date" id="smsDate">
+                </div>
+                <button class="btn" onclick="loadAbsentList()">🔍 Load Absent Students</button>
+                <div id="absentList"></div>
+                <div id="smsAlert" style="display:none;" class="alert-success">✅ SMS Sent Successfully!</div>
+            </div>
+        </div>
+
+        <!-- SEARCH STUDENT -->
+        <div class="section" id="search">
+            <div class="glass-box">
+                <div class="section-title">🔍 STUDENT FULL RECORD</div>
+                <div class="form-group">
+                    <label>Student Name</label>
+                    <input type="text" id="searchName" placeholder="Ex: Priya Kumari">
+                </div>
+                <button class="btn" onclick="searchStudent()">🔎 SHOW 1 YEAR RECORD</button>
+                <div id="searchResults"></div>
+            </div>
+        </div>
+
+        <!-- ADD STUDENT -->
+        <div class="section" id="add">
+            <div class="glass-box">
+                <div class="section-title">➕ ADD NEW STUDENT</div>
+                <div class="form-group"><label>Name *</label><input type="text" id="newName"></div>
+                <div class="form-group"><label>Roll No *</label><input type="number" id="newRoll"></div>
+                <div class="form-group"><label>Class *</label><input type="text" id="newClass"></div>
+                <div class="form-group"><label>Trade *</label>
+                    <select id="newTrade">
+                        <option value="">Select Trade</option>
+                        <option value="Electrician">Electrician</option>
+                        <option value="COPA">COPA</option>
+                        <option value="Welder">Welder</option>
+                        <option value="Cutting Sewing">Cutting Sewing</option>
+                        <option value="Plumber">Plumber</option>
+                        <option value="Fitter">Fitter</option>
+                    </select>
+                </div>
+                <div class="form-group"><label>Parent Phone *</label><input type="text" id="newPhone" placeholder="91XXXXXXXXXX"></div>
+                <button class="btn" onclick="addStudent()">✅ ADD STUDENT</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Trade images mapping - SEWING WALI THEEK KAR DI
+        const tradeImages = {
+            "Electrician": "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?w=400",
+            "COPA": "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400",
+            "Welder": "https://images.unsplash.com/photo-1504917595217-d4dc5ebe6122?w=400",
+            "Cutting Sewing": "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=400",
+            "Plumber": "https://images.unsplash.com/photo-1607472586893-edb57bdc0e39?w=400",
+            "Fitter": "https://images.unsplash.com/photo-1581092918056-0c4c3acd3789?w=400"
+        };
+
+        // Initialize with 30 students - SIRF CUTTING SEWING ME LADKI
+        let students = JSON.parse(localStorage.getItem('studentsSMS')) || [];
+
+        if(students.length === 0) {
+            const boyNames = ["Rahul Sharma", "Amit Kumar", "Vikash Yadav", "Rohan Verma", "Karan Singh", "Arjun Nair", "Suresh Kumar", "Raj Patel", "Vijay Shah", "Manoj Tiwari", "Ajay Kumar", "Ram Yadav", "Shyam Lal", "Krishna Rao", "Gopal Singh", "Sanjay Kumar", "Deepak Verma", "Ravi Gupta", "Mohit Singh", "Ankit Yadav", "Sahil Sharma", "Nitin Kumar", "Pankaj Jain", "Harish Patel", "Dinesh Rao", "Mukesh Singh", "Sunil Kumar", "Rajesh Verma", "Anil Gupta"];
+            const tradesList = ["Electrician", "COPA", "Welder", "Plumber", "Fitter"];
+
+            students = [];
+            let idCounter = 1;
+
+            // Cutting Sewing me sirf 1 ladki
+            students.push({
+                id: idCounter++,
+                name: "Priya Kumari",
+                roll: 1,
+                class: "10th A",
+                trade: "Cutting Sewing",
+                phone: "919876543210",
+                attendance: generateRandomAttendance()
+            });
+
+            // Baaki sab ladke different trades me
+            boyNames.forEach((name, i) => {
+                students.push({
+                    id: idCounter++,
+                    name: name,
+                    roll: idCounter,
+                    class: "10th A",
+                    trade: tradesList[i % 5],
+                    phone: `9198765${String(43210 + i).padStart(5,'0')}`,
+                    attendance: generateRandomAttendance()
+                });
+            });
+
+            localStorage.setItem('studentsSMS', JSON.stringify(students));
+        }
+
+        function generateRandomAttendance() {
+            const attendance = {};
+            for(let m = 0; m < 12; m++) {
+                for(let d = 1; d <= 30; d++) {
+                    const date = `2024-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                    attendance[date] = Math.random() > 0.15? 'P' : 'A';
+                }
+            }
+            return attendance;
+        }
+
+        let monthlyChart = null;
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+
+            const tabs = ['mark','monthly','absent','search','add'];
+            const index = tabs.indexOf(tab);
+            document.querySelectorAll('.tab')[index].classList.add('active');
+            document.getElementById(tab).classList.add('active');
+
+            if(tab === 'mark') loadStudents();
+        }
+
+        function loadStudents() {
+            const date = document.getElementById('attDate').value || new Date().toISOString().split('T')[0];
+            document.getElementById('attDate').value = date;
+
+            const list = document.getElementById('studentList');
+            list.innerHTML = students.map(s => {
+                const status = s.attendance[date] || '';
+                const isAbsent = status === 'A';
+                const tradeImg = tradeImages[s.trade] || tradeImages['Fitter'];
+                return `
+                    <div class="student-card ${isAbsent? 'absent-today' : ''}">
+                        <img src="${tradeImg}" class="trade-img" alt="${s.trade}">
+                        <div class="student-name">${s.name}</div>
+                        <div class="trade-name">🔧 ${s.trade}</div>
+                        <div style="color: #94a3b8; font-size: 13px;">Roll: ${s.roll} | ${s.class}</div>
+                        <div style="color: #c7d2fe; font-size: 12px; margin-top: 5px;">📱 ${s.phone}</div>
+                        <div class="student-stats">
+                            <div class="stat-badge present">P: ${countStatus(s, 'P')}</div>
+                            <div class="stat-badge absent">A: ${countStatus(s, 'A')}</div>
+                        </div>
+                        <div class="attendance-btns">
+                            <button class="btn-small btn-p" onclick="markAtt(${s.id}, 'P')" ${status === 'P'? 'style="opacity:0.5"' : ''}>✓ Present</button>
+                            <button class="btn-small btn-a" onclick="markAtt(${s.id}, 'A')" ${status === 'A'? 'style="opacity:0.5"' : ''}>✗ Absent</button>
+                        </div>
+                        <div class="contact-btns">
+                            <a href="tel:${s.phone}" class="btn-call">📞 Call</a>
+                            <a href="https://wa.me/${s.phone}" target="_blank" class="btn-whatsapp">💬 WhatsApp</a>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function countStatus(student, status) {
+            return Object.values(student.attendance).filter(s => s === status).length;
+        }
+
+        function markAtt(id, status) {
+            const date = document.getElementById('attDate').value;
+            const student = students.find(s => s.id === id);
+            student.attendance[date] = status;
+            localStorage.setItem('studentsSMS', JSON.stringify(students));
+            loadStudents();
+        }
+
+        function loadAbsentList() {
+            const date = document.getElementById('smsDate').value;
+            if(!date) {
+                alert('Date select karo!');
+                return;
+            }
+
+            const absentStudents = students.filter(s => s.attendance[date] === 'A');
+
+            if(absentStudents.length === 0) {
+                document.getElementById('absentList').innerHTML = `
+                    <div class="alert-success" style="background: rgba(34,197,94,0.2); border-color: #22c55e;">
+                        ✅ ${date} ko koi student absent nahi tha! Sab present the!
+                    </div>
+                `;
+                return;
+            }
+
+            document.getElementById('absentList').innerHTML = `
+                <div class="absent-list">
+                    <h3 style="color: #f87171; margin-bottom: 15px; font-family: 'Orbitron', sans-serif;">
+                        ⚠️ ${absentStudents.length} Students Absent on ${date}
+                    </h3>
+                    ${absentStudents.map(s => `
+                        <div class="absent-item">
+                            <div>
+                                <div style="font-weight: 700; color: #e0e7ff;">${s.name} - ${s.trade}</div>
+                                <div style="color: #94a3b8; font-size: 13px;">Roll: ${s.roll} | 📱 ${s.phone}</div>
+                            </div>
+                            <div class="sms-btn-group">
+                                <button class="btn-icon btn-sms" onclick="sendSMS('${s.phone}', '${s.name}', '${date}')">📱 SMS</button>
+                                <button class="btn-icon btn-wa" onclick="sendWhatsApp('${s.phone}', '${s.name}', '${date}')">💬 WA</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                    <button class="btn btn-sms" onclick="sendBulkSMS('${date}')">📱 SEND SMS TO ALL ABSENT</button>
+                </div>
+            `;
+        }
+
+        function sendSMS(phone, name, date) {
+            const msg = `Dear Parent,%0A%0AYour child ${name} was ABSENT on ${date}.%0A%0APlease contact school if this is an error.%0A%0A- School Admin`;
+            window.open(`sms:${phone}?body=${msg}`, '_blank');
+            showSMSAlert();
+        }
+
+        function sendWhatsApp(phone, name, date) {
+            const msg = `*⚠️ ABSENT ALERT*%0A%0ADear Parent,%0A%0AStudent: *${name}*%0ADate: *${date}*%0AStatus: *ABSENT*%0A%0AIf this is an error, please contact school immediately.%0A%0A_This is an automated message from School Attendance System_`;
+            window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+            showSMSAlert();
+        }
+
+        function sendBulkSMS(date) {
+            const absentStudents = students.filter(s => s.attendance[date] === 'A');
+            absentStudents.forEach(s => {
+                const msg = `Dear Parent,%0A%0AYour child ${s.name} was ABSENT on ${date}.%0A%0APlease contact school.%0A%0A- School Admin`;
+                window.open(`sms:${s.phone}?body=${msg}`, '_blank');
+            });
+            showSMSAlert();
+        }
+
+        function showSMSAlert() {
+            const alert = document.getElementById('smsAlert');
+            alert.style.display = 'block';
+            setTimeout(() => alert.style.display = 'none', 3000);
+        }
+
+        function generateMonthly() {
+            const month = document.getElementById('monthSelect').value;
+            if(!month) {
+                alert('Month select karo!');
+                return;
+            }
+
+            const [year, monthNum] = month.split('-');
+            const labels = students.map(s => s.name.split(' ')[0]);
+            const presentData = students.map(s => {
+                let count = 0;
+                for(let d = 1; d <= 30; d++) {
+                    const date = `${year}-${monthNum}-${String(d).padStart(2,'0')}`;
+                    if(s.attendance[date] === 'P') count++;
+                }
+                return count;
+            });
+            const absentData = students.map(s => {
+                let count = 0;
+                for(let d = 1; d <= 30; d++) {
+                    const date = `${year}-${monthNum}-${String(d).padStart(2,'0')}`;
+                    if(s.attendance[date] === 'A') count++;
+                }
+                return count;
+            });
+
+            const ctx = document.getElementById('monthlyChart').getContext('2d');
+            if(monthlyChart) monthlyChart.destroy();
+
+            monthlyChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        { label: 'Present Days', data: presentData, backgroundColor: 'rgba(34, 197, 94, 0.8)', borderColor: '#22c55e', borderWidth: 2 },
+                        { label: 'Absent Days', data: absentData, backgroundColor: 'rgba(239, 68, 68, 0.8)', borderColor: '#ef4444', borderWidth: 2 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: 'white', font: { size: 14, weight: 'bold' } } },
+                        title: { display: true, text: `${month} - 3D Attendance`, color: '#a5b4fc', font: { size: 18, weight: 'bold' } }
+                    },
+                    scales: {
+                        y: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(99,102,241,0.2)' } },
+                        x: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(99,102,241,0.2)' } }
+                    }
+                }
+            });
+        }
+
+        function searchStudent() {
+            const name = document.getElementById('searchName').value.toLowerCase();
+            if(!name) {
+                alert('Naam daalo!');
+                return;
+            }
+
+            const student = students.find(s => s.name.toLowerCase().includes(name));
+            if(!student) {
+                document.getElementById('searchResults').innerHTML = `
+                    <div class="glass-box">
+                        <h3 style="color: #ef4444;">❌ Student Not Found</h3>
+                        <p style="color: #cbd5e1; margin-top: 10px;">"${name}" naam ka koi student nahi mila</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let totalPresent = 0, totalAbsent = 0;
+            const monthStats = {};
+
+            for(let m = 0; m < 12; m++) {
+                const monthKey = `2024-${String(m+1).padStart(2,'0')}`;
+                monthStats[monthKey] = { P: 0, A: 0 };
+                for(let d = 1; d <= 30; d++) {
+                    const date = `${monthKey}-${String(d).padStart(2,'0')}`;
+                    if(student.attendance[date] === 'P') {
+                        totalPresent++;
+                        monthStats[monthKey].P++;
+                    }
+                    if(student.attendance[date] === 'A') {
+                        totalAbsent++;
+                        monthStats[monthKey].A++;
+                    }
+                }
+            }
+
+            const percentage = ((totalPresent / (totalPresent + totalAbsent)) * 100).toFixed(1);
+            const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            const tradeImg = tradeImages[student.trade] || tradeImages['Fitter'];
+
+            document.getElementById('searchResults').innerHTML = `
+                <div class="glass-box">
+                    <div class="record-header">
+                        <div>
+                            <img src="${tradeImg}" style="width:80px;height:60px;object-fit:cover;border-radius:10px;margin-bottom:10px;">
+                            <div class="record-name">👤 ${student.name}</div>
+                            <div style="color: #818cf8; font-weight: 700; margin-top: 5px;">🔧 ${student.trade}</div>
+                            <div style="color: #94a3b8; margin-top: 5px;">Roll: ${student.roll} | Class: ${student.class}</div>
+                            <div style="color: #c7d2fe; margin-top: 5px;">📱 ${student.phone}</div>
+                            <div style="margin-top:10px;display:flex;gap:8px;">
+                                <a href="tel:${student.phone}" class="btn-call" style="padding:8px 15px;">📞 Call</a>
+                                <a href="https://wa.me/${student.phone}" target="_blank" class="btn-whatsapp" style="padding:8px 15px;">💬 WhatsApp</a>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 32px; font-weight: 900; color: ${percentage >= 75? '#4ade80' : '#f87171'}; font-family: 'Orbitron', sans-serif;">${percentage}%</div>
+                            <div style="color: #94a3b8; font-size: 12px;">Attendance</div>
+                        </div>
+                    </div>
+
+                    <div class="year-stats">
+                        <div class="year-stat">
+                            <div class="year-stat-num" style="color: #4ade80;">${totalPresent}</div>
+                            <div class="year-stat-label">Present Days</div>
+                        </div>
+                        <div class="year-stat">
+                            <div class="year-stat-num" style="color: #f87171;">${totalAbsent}</div>
+                            <div class="year-stat-label">Absent Days</div>
+                        </div>
+                        <div class="year-stat">
+                            <div class="year-stat-num" style="color: #a5b4fc;">${totalPresent + totalAbsent}</div>
+                            <div class="year-stat-label">Total Days</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 20px;">
+                        <h4 style="color: #c7d2fe; margin-bottom: 12px; font-family: 'Orbitron', sans-serif;">📅 2024 MONTHLY BREAKDOWN</h4>
+                        <div class="month-grid">
+                            ${monthNames.map((m, i) => {
+                                const key = `2024-${String(i+1).padStart(2,'0')}`;
+                                const stats = monthStats[key];
+                                return `
+                                    <div class="month-box">
+                                        <div class="month-name">${m}</div>
+                                        <div class="month-data">P: ${stats.P}</div>
+                                        <div style="color: #f87171; font-weight: 700;">A: ${stats.A}</div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function addStudent() {
+            const name = document.getElementById('newName').value;
+            const roll = document.getElementById('newRoll').value;
+            const cls = document.getElementById('newClass').value;
+            const trade = document.getElementById('newTrade').value;
+            const phone = document.getElementById('newPhone').value;
+
+            if(!name ||!roll ||!cls ||!trade ||!phone) {
+                alert('Saare fields bharo!');
+                return;
+            }
+
+            students.push({
+                id: Date.now(),
+                name: name,
+                roll: parseInt(roll),
+                class: cls,
+                trade: trade,
+                phone: phone,
+                attendance: {}
+            });
+
+            localStorage.setItem('studentsSMS', JSON.stringify(students));
+            alert(`✅ ${name} added successfully!`);
+            document.getElementById('newName').value = '';
+            document.getElementById('newRoll').value = '';
+            document.getElementById('newClass').value = '';
+            document.getElementById('newTrade').value = '';
+            document.getElementById('newPhone').value = '';
+            loadStudents();
+        }
+
+        window.onload = () => {
+            document.getElementById('attDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('monthSelect').value = new Date().toISOString().slice(0, 7);
+            document.getElementById('smsDate').value = new Date().toISOString().split('T')[0];
+            loadStudents();
+        }
+    </script>
+</body>
+</html>
